@@ -7,7 +7,7 @@
     "icon": "./assets/icon.png",
     "scheme": "locationmap",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -27,17 +27,14 @@
         "backgroundColor": "#1B5E20"
       },
       "package": "com.example.locationmap",
+      "versionCode": 1,
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
         "INTERNET",
         "ACCESS_NETWORK_STATE"
       ],
-      "config": {
-        "googleMaps": {
-          "apiKey": ""
-        }
-      }
+      "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
       "bundler": "metro",
@@ -48,7 +45,8 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Cho phép ứng dụng sử dụng vị trí của bạn để lưu và hiển thị trên bản đồ OpenStreetMap."
+          "locationAlwaysAndWhenInUsePermission": "Cho phép ứng dụng sử dụng vị trí của bạn để lưu và hiển thị trên bản đồ OpenStreetMap.",
+          "isAndroidForegroundServiceEnabled": true
         }
       ]
     ],

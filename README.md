@@ -10,7 +10,7 @@ Chuyển đổi từ ứng dụng Android native (Kotlin + osmdroid) sang **Reac
 | Bản đồ OpenStreetMap | `react-native-maps` + UrlTile OSM (không cần API key) |
 | Vị trí hiện tại | `expo-location` (GPS) |
 | Thêm vị trí | Long-press trên bản đồ **hoặc** nút **+** |
-| Lưu Firebase | `users/{uid}/locations/{id}` – khớp Rules gốc |
+| Lưu Firebase | `users/{uid}/locations/{id}` – khớp Rules (users/$uid) |
 | Danh sách + xóa | Bottom sheet danh sách, xác nhận xóa |
 | Tìm kiếm | Theo tên hoặc tọa độ trong danh sách |
 | Mở bản đồ ngoài | Apple Maps / Google Maps / OSM web |
@@ -18,10 +18,29 @@ Chuyển đổi từ ứng dụng Android native (Kotlin + osmdroid) sang **Reac
 
 > Tài khoản người dùng được tạo sẵn trên Firebase Console (Authentication). App chỉ hỗ trợ đăng nhập.
 
+---
+
+## Build trực tiếp trên Android Studio (khuyến nghị)
+
+Xem hướng dẫn **chi tiết từng bước** tại file:
+
+📄 **[HUONG_DAN_BUILD_ANDROID_STUDIO.md](./HUONG_DAN_BUILD_ANDROID_STUDIO.md)**
+
+### Tóm tắt nhanh
+
+```bash
+npm install
+npx expo prebuild --platform android --clean
+```
+
+Sau đó mở thư mục **`android/`** bằng Android Studio → Run hoặc Generate Signed APK.
+
+---
+
 ## Cấu trúc thư mục
 
 ```
-LocationMapRN/
+diemdentieptheo-main/
 ├── app/                    # Expo Router
 │   ├── _layout.tsx
 │   └── index.tsx
@@ -41,23 +60,22 @@ LocationMapRN/
 │   │   └── config.ts
 │   └── types/
 │       └── index.ts
+├── android/                # (sau khi chạy prebuild)
 ├── app.json
 ├── package.json
+├── HUONG_DAN_BUILD_ANDROID_STUDIO.md
 └── README.md
 ```
 
-## Cài đặt & chạy
+## Cài đặt & chạy (Expo Go – nhanh)
 
 ### 1. Cài dependency
 
 ```bash
-cd LocationMapRN
 npm install
 ```
 
 ### 2. Firebase (đã cấu hình sẵn)
-
-Config lấy từ `google-services.json` gốc:
 
 - Project: `ptptt-pcpc`
 - Database: `https://ptptt-pcpc-default-rtdb.firebaseio.com`
@@ -72,27 +90,44 @@ Config lấy từ `google-services.json` gốc:
         ".read": "$uid === auth.uid",
         ".write": "$uid === auth.uid"
       }
+    },
+    "companies": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "history": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid"
+      }
+    },
+    "locations": {
+      ".read": "auth != null",
+      ".write": "auth != null"
     }
   }
 }
 ```
 
+App lưu vị trí tại `users/{uid}/locations/{id}` → chỉ owner được đọc/ghi.
+
 Bật **Email/Password** trong Firebase Authentication và tạo user thủ công trên Console.
 
-### 3. Chạy
+### 3. Chạy với Expo Go
 
 ```bash
 npx expo start
 ```
 
 - Quét QR bằng Expo Go (Android/iOS)
-- Hoặc nhấn `a` để mở Android emulator / `i` cho iOS simulator
 
-### 4. Build APK (EAS)
+### 4. Build APK khác
 
-```bash
-npx eas build --platform android --profile preview
-```
+- **Android Studio** (xem file HUONG_DAN_BUILD_ANDROID_STUDIO.md) – khuyến nghị
+- **EAS Build** (cloud):
+  ```bash
+  npx eas build --platform android --profile preview
+  ```
 
 ## Lưu ý bản đồ OSM
 

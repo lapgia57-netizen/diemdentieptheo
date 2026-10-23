@@ -16,7 +16,6 @@ import {
   set,
   remove,
   onValue,
-  off,
   DatabaseReference,
 } from 'firebase/database';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -38,6 +37,12 @@ const database = getDatabase(app);
 
 export { auth, database };
 
+/**
+ * Đường dẫn: users/$uid/locations
+ * Khớp Firebase Rules:
+ *   "users": { "$uid": { ".read": "$uid === auth.uid", ".write": "$uid === auth.uid" } }
+ * Mỗi user chỉ đọc/ghi được dữ liệu của chính mình.
+ */
 function userLocationsRef(uid: string): DatabaseReference {
   return ref(database, `users/${uid}/locations`);
 }
@@ -108,6 +113,8 @@ export function observeLocations(
 
   const locationsRef = userLocationsRef(user.uid);
 
+  // Path users/$uid/locations khớp rules:
+  // "users": { "$uid": { ".read": "$uid === auth.uid", ".write": "$uid === auth.uid" } }
   const unsubscribe = onValue(
     locationsRef,
     (snapshot) => {
@@ -130,7 +137,8 @@ export function observeLocations(
     }
   );
 
-  return () => off(locationsRef);
+  // Dùng unsubscribe từ onValue (chuẩn modular SDK v9+)
+  return unsubscribe;
 }
 
 function parseLocation(child: any): LocationItem | null {
@@ -181,7 +189,7 @@ export function friendlyAuthError(e: unknown): string {
 export function friendlyDbError(e: unknown): string {
   const msg = (e as Error)?.message || '';
   if (/permission|PERMISSION_DENIED/i.test(msg))
-    return 'Không có quyền ghi. Kiểm tra đã đăng nhập và Firebase Rules (users/$uid).';
+    return 'Không có quyền. Kiểm tra đã đăng nhập + Firebase Rules (users/$uid phải = auth.uid).';
   if (/network|Unable to resolve/i.test(msg)) return 'Không có mạng. Kiểm tra Internet.';
   if (/timeout|timed out/i.test(msg)) return 'Hết thời gian chờ. Thử lại.';
   return msg || 'Lỗi cơ sở dữ liệu';
