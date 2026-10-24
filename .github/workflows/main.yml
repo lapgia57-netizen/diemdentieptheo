@@ -1,44 +1,55 @@
-name: Build React Native Android
+name: Tự động Build và Phát hành Release APK
 
 on:
   push:
     tags:
-      - 'v*' # Quy trình sẽ tự kích hoạt khi bạn tạo tag mới (ví dụ: v1.0.0)
+      - 'v*' # Kích hoạt khi đẩy tag dạng v1.0.0, v2.1.0...
 
 jobs:
-  build-android:
+  build-and-release:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout mã nguồn
+      - name: 1. Kiểm tra mã nguồn
         uses: actions/checkout@v4
 
-      - name: Thiết lập Node.js
+      - name: 2. Thiết lập Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm' # hoặc 'yarn' tùy thuộc bạn dùng gì
+          node-version: '20'
+          cache: 'npm'
 
-      - name: Cài đặt dependencies
-        run: npm install # hoặc yarn install
+      - name: 3. Cài đặt các gói phụ thuộc (Dependencies)
+        run: npm install
 
-      - name: Thiết lập Java (JDK 17)
+      - name: 4. Thiết lập công cụ Expo EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 5. Tạo cấu hình Native (Prebuild)
+        run: npx expo prebuild --platform android
+
+      - name: 6. Thiết lập môi trường Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Thiết lập Android SDK
+      - name: 7. Thiết lập Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Build ứng dụng (Tạo file APK Release)
+      - name: 8. Thực hiện Build cục bộ xuất file APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleRelease
-
-      - name: Đính kèm file APK vào GitHub Release
+          
+      - name: 9. Khởi tạo phiên bản GitHub Release và đính kèm APK
         uses: softprops/action-gh-release@v2
         with:
           files: android/app/build/outputs/apk/release/app-release.apk
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
